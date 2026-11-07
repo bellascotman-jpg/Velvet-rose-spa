@@ -320,11 +320,12 @@ function confirmV(){const b=S.bk;return `<div class="sc" style="text-align:cente
 function render(){side();$('#app').innerHTML=S.view==='home'?home():S.view==='book'?book():confirmV();document.querySelectorAll('.rv').forEach(x=>io.observe(x))}
 
 // Live booking and Paystack integration. The approved page design remains unchanged.
-S.availableTimes=[];S.availabilityLoading=false;S.submitting=false;
-BTN.pay='Pay deposit securely with Paystack';
+S.availableTimes=[];S.availabilityLoading=false;S.submitting=false;S.paymentReady=false;S.paymentChecking=true;
+BTN.pay='Payment setup pending';
 async function selectDate(date){S.date=date;S.time=null;S.availableTimes=[];S.availabilityLoading=true;render();try{const response=await fetch('/api/availability?date='+encodeURIComponent(date)+'&service='+encodeURIComponent(S.svc),{cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.error||'Could not load live availability.');S.availableTimes=(data.times||[]).filter(function(item){return item.available;}).map(function(item){return item.time;});}catch(error){toast(error.message||'Could not load appointment times.');}finally{S.availabilityLoading=false;render();}}
 function selectService(id){S.svc=id;S.date=null;S.time=null;S.availableTimes=[];render();}
 function selectTime(time){S.time=time;render();}
+async function checkPaymentSetup(){try{const response=await fetch('/api/health',{cache:'no-store'});const data=await response.json();S.paymentReady=Boolean(response.ok&&data.ok&&data.database==='connected'&&data.paystackConfigured);}catch(error){S.paymentReady=false;}finally{S.paymentChecking=false;BTN.pay=S.paymentReady?'Pay deposit securely with Paystack':'Payment setup pending';render();}}
 const originalBook=book;
 book=function(){
   let html=originalBook();
@@ -342,14 +343,17 @@ book=function(){
     timeBlock+='<p class="small mut" style="margin-top:8px">Availability is checked against live appointment holds and confirmed bookings.</p>';
     html=html.replace(/<div class="slots">[\s\S]*?<\/div><p class="small mut" style="margin-top:8px">Your preferred time is confirmed by our team\. Need today or tomorrow\? Message us\.<\/p>/,timeBlock);
   }
-  if(STEPS[S.step-1]==='pay'){
+  if(STEPS[S.step-1]==='pay'&&!S.paymentReady){const setupBlock='<h2 style="margin-top:8px">Online payment setup</h2><div class="note">'+(S.paymentChecking?'Checking secure payment setup…':'Paystack checkout is being configured. You can continue booking once online payments are enabled.')+'</div>';html=html.replace(/<h2 style="margin-top:8px">Secure your appointment<\/h2>[\s\S]*?(?=<div class="nav2">)/,setupBlock);}
+  if(STEPS[S.step-1]==='pay'&&S.paymentReady){
     const payBlock='<h2 style="margin-top:8px">Secure your appointment</h2><p class="mut" style="margin:6px 0 12px">Pay the <b>'+fmt(CFG.deposit)+' booking deposit</b> using Paystack’s secure checkout. The deposit is deducted from your treatment total on the day.</p><div class="card"><div class="row"><span>Payment provider</span><span><b>Paystack</b></span></div><div class="row"><span>Amount due now</span><span><b>'+fmt(CFG.deposit)+'</b></span></div><div class="row"><span>Balance at the spa</span><span>'+fmt(Math.max(0,total(S)-CFG.deposit))+'</span></div></div><div class="note">When you continue, we place a 10-minute hold on your selected appointment time. Your appointment is confirmed only after our server verifies the successful Paystack payment.</div>';
     html=html.replace(/<h2 style="margin-top:8px">Secure your appointment<\/h2>[\s\S]*?(?=<div class="nav2">)/,payBlock);
   }
   if(S.submitting){html=html.replace(/onclick="next\(\)">Pay deposit securely with Paystack<\/button>/,'onclick="next()" disabled>Connecting to Paystack…</button>');}
+  if(STEPS[S.step-1]==='pay'&&!S.paymentReady){html=html.replace(/onclick="next\(\)">Payment setup pending<\/button>/,'onclick="next()" disabled>Payment setup pending</button>');}
   return html;
 };
 submit=async function(){
+  if(!S.paymentReady){toast('Online payment is not configured yet. Please try again later.');return;}
   if(S.submitting)return;
   S.submitting=true;render();
   try{
@@ -376,5 +380,6 @@ next=function(){
   if(st==='pay'){submit();return;}
   S.step++;render();scrollTo(0,0);
 };
+checkPaymentSetup();
 render();
 </script></body></html>
