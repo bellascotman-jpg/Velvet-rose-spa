@@ -297,11 +297,8 @@ async function completePayment(referenceValue, verified) {
   if (verified.reference !== referenceValue ||
       Number(verified.amount) !== Number(payment.amount_kobo) ||
       verified.currency !== "NGN" ||
-      String(verified.customer?.email || "").toLowerCase() !== String(payment.customer_email || verified.customer?.email || "").toLowerCase()) {
-    // The authoritative checks below compare against the stored amount and booking email.
-    if (verified.reference !== referenceValue || Number(verified.amount) !== Number(payment.amount_kobo) || verified.currency !== "NGN") {
-      throw new Error("Paystack verification did not match this booking.");
-    }
+      String(verified.customer?.email || "").toLowerCase() !== String(payment.customer_email || "").toLowerCase()) {
+    throw new Error("Paystack verification did not match this booking.");
   }
   if (payment.status === "success" && payment.booking_status === "confirmed") {
     return { status: "confirmed", bookingReference: (await database.pool.query("SELECT reference FROM bookings WHERE id=$1", [payment.booking_id])).rows[0]?.reference };
@@ -317,6 +314,7 @@ async function completePayment(referenceValue, verified) {
     if (booking.status !== "confirmed") {
       const buckets = slotBuckets(String(booking.start_time).slice(0, 5), booking.duration_minutes);
       if (new Date(booking.expires_at).getTime() <= Date.now() || booking.status === "expired") {
+        await client.query("DELETE FROM booking_slot_locks WHERE expires_at IS NOT NULL AND expires_at <= NOW()");
         let acquired = 0;
         for (const bucket of buckets) {
           const result = await client.query(
