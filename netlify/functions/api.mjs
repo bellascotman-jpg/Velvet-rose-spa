@@ -127,6 +127,16 @@ async function paystackRequest(path, options = {}) {
   return data.data;
 }
 
+async function health() {
+  const database = db();
+  await database.pool.query("SELECT 1");
+  return json({
+    ok: true,
+    database: "connected",
+    paystackConfigured: Boolean(Netlify.env.get("PAYSTACK_SECRET_KEY"))
+  });
+}
+
 async function availability(request) {
   const url = new URL(request.url);
   const date = url.searchParams.get("date") || "";
@@ -402,6 +412,7 @@ async function webhook(request) {
 export default async (request) => {
   try {
     const path = new URL(request.url).pathname;
+    if (path === "/api/health" && request.method === "GET") return await health();
     if (path === "/api/availability" && request.method === "GET") return await availability(request);
     if (path === "/api/bookings" && request.method === "POST") return await createBooking(request);
     if (path === "/api/payments/verify" && request.method === "GET") return await verifyPayment(request);
