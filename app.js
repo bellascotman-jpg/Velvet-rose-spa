@@ -8,6 +8,21 @@ const CATS=CFG.categories;
 const T=CFG.treatments;
 const ADD=CFG.addons;
 const HRS=CFG.timeSlots;
+const FIREBASE_CONFIG=CFG.firebase||{};
+const FIREBASE_CONFIGURED=['apiKey','authDomain','projectId','appId'].every(k=>typeof FIREBASE_CONFIG[k]==='string'&&FIREBASE_CONFIG[k].trim().length>0);
+function initFirebase(){
+  if(DEMO_MODE||!FIREBASE_CONFIGURED||!window.firebase)return null;
+  const fb=window.firebase;
+  if(!fb.apps.length)fb.initializeApp(FIREBASE_CONFIG);
+  const auth=fb.auth();
+  const db=fb.firestore();
+  if(CFG.useEmulators&&location.hostname==='localhost'){
+    auth.useEmulator('http://127.0.0.1:9099',{disableWarnings:true});
+    db.useEmulator('127.0.0.1',8080);
+  }
+  return {auth,db};
+}
+window.VELVET_ROSE_FIREBASE=initFirebase();
 const t12=t=>{let[h,m]=t.split(':').map(Number);return(h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' AM':' PM')};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const DAYS=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i+1);return d});
