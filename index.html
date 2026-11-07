@@ -336,7 +336,7 @@ book=function(){
     if(S.availabilityLoading){timeBlock+='<div class="note">Checking live availability…</div>';}
     else if(S.availableTimes.length){
       timeBlock+='<div class="slots">'+S.availableTimes.map(function(time){
-        return '<button class="slot '+(S.time===time?'on':'')+'" onclick="selectTime('+JSON.stringify(time)+')">'+t12(time)+'</button>';
+        return '<button class="slot '+(S.time===time?'on':'')+'" onclick="selectTime(\\''+time+'\\')">'+t12(time)+'</button>';
       }).join('')+'</div>';
     }else{timeBlock+='<div class="note">No available times for this treatment on this date. Please choose another date.</div>';}
     timeBlock+='<p class="small mut" style="margin-top:8px">Availability is checked against live appointment holds and confirmed bookings.</p>';
