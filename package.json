@@ -4,10 +4,16 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12.2"
   },
   "scripts": {
     "build": "node scripts/copy-static.mjs",
-    "dev": "node scripts/serve-static.mjs"
+    "dev": "npx netlify-cli dev"
+  },
+  "dependencies": {
+    "@netlify/database": "latest"
+  },
+  "devDependencies": {
+    "netlify-cli": "^26.0.0"
   }
 }
