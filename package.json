@@ -10,7 +10,8 @@
     "emulators": "firebase emulators:start --project demo-velvet-rose --only auth,firestore",
     "emulators:export": "firebase emulators:export ./emulator-data --project demo-velvet-rose",
     "build": "node scripts/copy-static.mjs",
-    "test:rules": "firebase emulators:exec --project demo-velvet-rose --only firestore \"node --test tests/firestore.rules.test.mjs\""
+    "test:rules": "firebase emulators:exec --project demo-velvet-rose --only firestore \"node --test tests/firestore.rules.test.mjs\"",
+    "dev": "node scripts/serve-static.mjs"
   },
   "devDependencies": {
     "firebase-tools": "^14.0.0",
