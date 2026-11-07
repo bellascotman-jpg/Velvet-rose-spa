@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: velvet-rose-netlify-production
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
