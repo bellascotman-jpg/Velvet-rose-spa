@@ -326,11 +326,55 @@ async function selectDate(date){S.date=date;S.time=null;S.availableTimes=[];S.av
 function selectService(id){S.svc=id;S.date=null;S.time=null;S.availableTimes=[];render();}
 function selectTime(time){S.time=time;render();}
 const originalBook=book;
-book=function(){let html=originalBook();html=html.replace(new RegExp('onclick="S\\\\.svc=(\\\\d+);render\\\\(\\\\)"','g'),'onclick="selectService($1)"');html=html.replace(new RegExp('onclick="S\\\\.date=\\\\'(\\\\d{4}-\\\\d{2}-\\\\d{2})\\\\';S\\\\.time=null;render\\\\(\\\\)"','g'),"onclick=\"selectDate('$1')\"");html=html.replace('Email address (optional)','Email address');
-if(STEPS[S.step-1]==='when'&&S.date){let timeBlock='<label>Available appointment times</label>';if(S.availabilityLoading){timeBlock+='<div class="note">Checking live availability…</div>';}else if(S.availableTimes.length){timeBlock+='<div class="slots">'+S.availableTimes.map(function(time){return '<button class="slot '+(S.time===time?'on':'')+'" onclick="selectTime(\\''+time+'\\')">'+t12(time)+'</button>';}).join('')+'</div>';}else{timeBlock+='<div class="note">No available times for this treatment on this date. Please choose another date.</div>';}timeBlock+='<p class="small mut" style="margin-top:8px">Availability is checked against live appointment holds and confirmed bookings.</p>';html=html.replace(new RegExp('<div class="slots">[\\\\s\\\\S]*?<\\\\/div><p class="small mut" style="margin-top:8px">Your preferred time is confirmed by our team\\\\. Need today or tomorrow\\\\? Message us\\\\.<\\\\/p>'),timeBlock);}
-if(STEPS[S.step-1]==='pay'){const payBlock='<h2 style="margin-top:8px">Secure your appointment</h2><p class="mut" style="margin:6px 0 12px">Pay the <b>'+fmt(CFG.deposit)+' booking deposit</b> using Paystack’s secure checkout. The deposit is deducted from your treatment total on the day.</p><div class="card"><div class="row"><span>Payment provider</span><span><b>Paystack</b></span></div><div class="row"><span>Amount due now</span><span><b>'+fmt(CFG.deposit)+'</b></span></div><div class="row"><span>Balance at the spa</span><span>'+fmt(Math.max(0,total(S)-CFG.deposit))+'</span></div></div><div class="note">When you continue, we place a 10-minute hold on your selected appointment time. Your appointment is confirmed only after our server verifies the successful Paystack payment.</div>';html=html.replace(new RegExp('<h2 style="margin-top:8px">Secure your appointment<\\\\/h2>[\\\\s\\\\S]*?(?=<div class="nav2">)'),payBlock);}
-if(S.submitting){html=html.replace(new RegExp('onclick="next\\\\(\\\\)">Pay deposit securely with Paystack<\\\\/button>'),'onclick="next()" disabled>Connecting to Paystack…</button>');}return html;};
-submit=async function(){if(S.submitting)return;S.submitting=true;render();try{const response=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({serviceId:S.svc,addonIds:S.add.slice(),date:S.date,time:S.time,therapistPreference:S.pref,occasion:S.occ,customer:{name:S.name,phone:S.phone,email:S.email,note:S.note}})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Could not create your booking.');if(!data.authorizationUrl)throw new Error('Paystack did not return a checkout link.');window.location.assign(data.authorizationUrl);}catch(error){S.submitting=false;render();toast(error.message||'Unable to start payment. Please try again.');}};
-next=function(){const st=STEPS[S.step-1];if(st==='details'){S.name=$('#n').value.trim();S.phone=$('#p').value.trim();S.email=$('#m').value.trim();S.note=$('#o').value.trim();if(!SPA)S.pt=$('#t').value;else S.health=$('#hc').checked;const errors={};if(S.name.length<2)errors.name='Please enter your full name.';if(!/^(\+?234|0)[789][01]\d{8}$/.test(S.phone.replace(/[\s-]/g,'')))errors.phone='Enter a Nigerian number, e.g. +234 803 000 0000.';if(!/^\S+@\S+\.\S+$/.test(S.email))errors.email='Enter a valid email address for your Paystack receipt.';if(SPA&&!S.health)errors.health='Please tick to confirm.';S.errs=errors;if(Object.keys(errors).length){render();return;}}if(st==='pay'){submit();return;}S.step++;render();scrollTo(0,0);};
+book=function(){
+  let html=originalBook();
+  html=html.replace(/onclick="S\.svc=(\d+);render\(\)"/g,'onclick="selectService($1)"');
+  html=html.replace(/onclick="S\.date='(\d{4}-\d{2}-\d{2})';S\.time=null;render\(\)"/g,"onclick=\"selectDate('$1')\"");
+  html=html.replace('Email address (optional)','Email address');
+  if(STEPS[S.step-1]==='when'&&S.date){
+    let timeBlock='<label>Available appointment times</label>';
+    if(S.availabilityLoading){timeBlock+='<div class="note">Checking live availability…</div>';}
+    else if(S.availableTimes.length){
+      timeBlock+='<div class="slots">'+S.availableTimes.map(function(time){
+        return '<button class="slot '+(S.time===time?'on':'')+'" onclick="selectTime('+JSON.stringify(time)+')">'+t12(time)+'</button>';
+      }).join('')+'</div>';
+    }else{timeBlock+='<div class="note">No available times for this treatment on this date. Please choose another date.</div>';}
+    timeBlock+='<p class="small mut" style="margin-top:8px">Availability is checked against live appointment holds and confirmed bookings.</p>';
+    html=html.replace(/<div class="slots">[\s\S]*?<\/div><p class="small mut" style="margin-top:8px">Your preferred time is confirmed by our team\. Need today or tomorrow\? Message us\.<\/p>/,timeBlock);
+  }
+  if(STEPS[S.step-1]==='pay'){
+    const payBlock='<h2 style="margin-top:8px">Secure your appointment</h2><p class="mut" style="margin:6px 0 12px">Pay the <b>'+fmt(CFG.deposit)+' booking deposit</b> using Paystack’s secure checkout. The deposit is deducted from your treatment total on the day.</p><div class="card"><div class="row"><span>Payment provider</span><span><b>Paystack</b></span></div><div class="row"><span>Amount due now</span><span><b>'+fmt(CFG.deposit)+'</b></span></div><div class="row"><span>Balance at the spa</span><span>'+fmt(Math.max(0,total(S)-CFG.deposit))+'</span></div></div><div class="note">When you continue, we place a 10-minute hold on your selected appointment time. Your appointment is confirmed only after our server verifies the successful Paystack payment.</div>';
+    html=html.replace(/<h2 style="margin-top:8px">Secure your appointment<\/h2>[\s\S]*?(?=<div class="nav2">)/,payBlock);
+  }
+  if(S.submitting){html=html.replace(/onclick="next\(\)">Pay deposit securely with Paystack<\/button>/,'onclick="next()" disabled>Connecting to Paystack…</button>');}
+  return html;
+};
+submit=async function(){
+  if(S.submitting)return;
+  S.submitting=true;render();
+  try{
+    const response=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({serviceId:S.svc,addonIds:S.add.slice(),date:S.date,time:S.time,therapistPreference:S.pref,occasion:S.occ,customer:{name:S.name,phone:S.phone,email:S.email,note:S.note}})});
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||'Could not create your booking.');
+    if(!data.authorizationUrl)throw new Error('Paystack did not return a checkout link.');
+    window.location.assign(data.authorizationUrl);
+  }catch(error){S.submitting=false;render();toast(error.message||'Unable to start payment. Please try again.');}
+};
+next=function(){
+  const st=STEPS[S.step-1];
+  if(st==='details'){
+    S.name=$('#n').value.trim();S.phone=$('#p').value.trim();S.email=$('#m').value.trim();S.note=$('#o').value.trim();
+    if(!SPA)S.pt=$('#t').value;else S.health=$('#hc').checked;
+    const errors={};
+    if(S.name.length<2)errors.name='Please enter your full name.';
+    if(!/^(\+?234|0)[789][01]\d{8}$/.test(S.phone.replace(/[\s-]/g,'')))errors.phone='Enter a Nigerian number, e.g. +234 803 000 0000.';
+    if(!/^\S+@\S+\.\S+$/.test(S.email))errors.email='Enter a valid email address for your Paystack receipt.';
+    if(SPA&&!S.health)errors.health='Please tick to confirm.';
+    S.errs=errors;
+    if(Object.keys(errors).length){render();return;}
+  }
+  if(st==='pay'){submit();return;}
+  S.step++;render();scrollTo(0,0);
+};
 render();
 </script></body></html>
