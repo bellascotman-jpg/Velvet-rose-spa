@@ -11,6 +11,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: "003d5ef9-97d7-42c2-8e77-066af3d93f43"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,9 +31,6 @@ jobs:
 
       - name: Deploy to the existing Velvet Rose Netlify site
         if: ${{ env.NETLIFY_AUTH_TOKEN != '' }}
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: "003d5ef9-97d7-42c2-8e77-066af3d93f43"
         run: npx --yes netlify-cli deploy --prod --dir=public --functions=netlify/functions --site="$NETLIFY_SITE_ID" --auth="$NETLIFY_AUTH_TOKEN"
 
       - name: Explain skipped deployment
