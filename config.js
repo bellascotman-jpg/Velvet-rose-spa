@@ -37,10 +37,10 @@ window.VELVET_ROSE_CONFIG = Object.freeze({
   addons: [{n:'Scalp massage',p:8000},{n:'Paraffin hand treatment',p:10000},{n:'Aromatherapy upgrade',p:6000}],
   timeSlots: ['09:00','10:30','12:00','13:30','15:00','16:30','18:00'],
   firebase: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    appId: ""
+    apiKey: "demo-api-key",
+    authDomain: "demo-velvet-rose.firebaseapp.com",
+    projectId: "demo-velvet-rose",
+    appId: "1:000000000000:web:demo"
   },
   useEmulators: true,
   sampleBookings: [['Amara Okafor',3,0,'13:30','Confirmed'],['Tunde Adeyemi',16,0,'15:00','Pending'],['Ifeoma Nwosu',7,1,'12:00','Pending'],['Chika Eze',14,1,'16:30','Confirmed'],['Zainab Bello',12,2,'13:30','Pending']]
