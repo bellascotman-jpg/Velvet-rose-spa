@@ -11,12 +11,13 @@ const HRS=CFG.timeSlots;
 const FIREBASE_CONFIG=CFG.firebase||{};
 const FIREBASE_CONFIGURED=['apiKey','authDomain','projectId','appId'].every(k=>typeof FIREBASE_CONFIG[k]==='string'&&FIREBASE_CONFIG[k].trim().length>0);
 function initFirebase(){
-  if(DEMO_MODE||!FIREBASE_CONFIGURED||!window.firebase)return null;
+  const localEmulator=CFG.useEmulators&&['localhost','127.0.0.1'].includes(location.hostname);
+  if((DEMO_MODE&&!localEmulator)||!FIREBASE_CONFIGURED||!window.firebase)return null;
   const fb=window.firebase;
   if(!fb.apps.length)fb.initializeApp(FIREBASE_CONFIG);
   const auth=fb.auth();
   const db=fb.firestore();
-  if(CFG.useEmulators&&location.hostname==='localhost'){
+  if(localEmulator){
     auth.useEmulator('http://127.0.0.1:9099',{disableWarnings:true});
     db.useEmulator('127.0.0.1',8080);
   }
