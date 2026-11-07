@@ -1,5 +1,5 @@
 // Velvet Rose Spa & Wellness — site-specific configuration.
-// DEMO_MODE must remain true until real booking, identity and payment services pass acceptance tests.
+// Keep demoMode=true until real identity, booking, payment and admin services pass acceptance tests.
 window.VELVET_ROSE_CONFIG = Object.freeze({
   demoMode: true,
   businessName: "Velvet Rose Spa & Wellness",
@@ -13,13 +13,9 @@ window.VELVET_ROSE_CONFIG = Object.freeze({
   email: "hello@velvetrose.example",
   hoursLabel: "Mon–Fri 9–8 · Sat 9–7 · Sun 12–6",
   sundayOpensLabel: "Sun from 12:00 PM",
-  hours: {
-    weekdays: "9:00 AM – 8:00 PM",
-    saturday: "9:00 AM – 7:00 PM",
-    sunday: "12:00 PM – 6:00 PM"
-  },
-  const DEP=10000;
-  categories: ['Massage','Facials','Body','Hands & Feet','Packages'];
+  hours: { weekdays: "9:00 AM – 8:00 PM", saturday: "9:00 AM – 7:00 PM", sunday: "12:00 PM – 6:00 PM" },
+  deposit: 10000,
+  categories: ['Massage','Facials','Body','Hands & Feet','Packages'],
   treatments: [
 {c:0,n:'Swedish Relaxation Massage',m:60,p:45000,t:'Long, flowing strokes to release tension and quieten the mind.'},
 {c:0,n:'Deep Tissue Massage',m:60,p:55000,t:'Firm, focused pressure for knots, tight shoulders and sore backs.'},
@@ -37,8 +33,8 @@ window.VELVET_ROSE_CONFIG = Object.freeze({
 {c:4,n:'The Velvet Ritual',m:150,p:120000,t:'A massage, facial and spa pedicure in one unhurried visit.'},
 {c:4,n:'Couples Escape',m:120,p:180000,t:'A couples massage plus a facial each, in our private suite.'},
 {c:4,n:'Bridal Glow',m:180,p:150000,t:'A body scrub, facial and manicure to prepare for your day.'},
-{c:4,n:'Executive Reset',m:90,p:75000,t:'A deep tissue massage and scalp treatment for busy weeks.'}];
-  addons: [{n:'Scalp massage',p:8000},{n:'Paraffin hand treatment',p:10000},{n:'Aromatherapy upgrade',p:6000}];
-  timeSlots: ['09:00','10:30','12:00','13:30','15:00','16:30','18:00'];
+{c:4,n:'Executive Reset',m:90,p:75000,t:'A deep tissue massage and scalp treatment for busy weeks.'}],
+  addons: [{n:'Scalp massage',p:8000},{n:'Paraffin hand treatment',p:10000},{n:'Aromatherapy upgrade',p:6000}],
+  timeSlots: ['09:00','10:30','12:00','13:30','15:00','16:30','18:00'],
   sampleBookings: [['Amara Okafor',3,0,'13:30','Confirmed'],['Tunde Adeyemi',16,0,'15:00','Pending'],['Ifeoma Nwosu',7,1,'12:00','Pending'],['Chika Eze',14,1,'16:30','Confirmed'],['Zainab Bello',12,2,'13:30','Pending']]
 });
