@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "emulators": "firebase emulators:start --project demo-velvet-rose --only auth,firestore",
-    "emulators:export": "firebase emulators:export ./emulator-data --project demo-velvet-rose"
+    "emulators:export": "firebase emulators:export ./emulator-data --project demo-velvet-rose",
+    "build": "node scripts/copy-static.mjs"
   },
   "devDependencies": {
     "firebase-tools": "^14.0.0"
