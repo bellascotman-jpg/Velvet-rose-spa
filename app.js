@@ -168,15 +168,15 @@ const n=$('#an').value.trim(),p=$('#ap').value.trim(),m=$('#ae').value.trim();
 S.ae={};
 if(AUTH_DEMO){
 if(n.length<2)S.ae.n='Please enter your full name.';
-if(!/^(\\+?234|0)[789][01]\\d{8}$/.test(p.replace(/[\\s-]/g,'')))S.ae.p='Enter a Nigerian number, e.g. +234 803 000 0000.';
+if(!/^(\+?234|0)[789][01]\d{8}$/.test(p.replace(/[\s-]/g,'')))S.ae.p='Enter a Nigerian number, e.g. +234 803 000 0000.';
 S.tmp={name:n,phone:p,email:m};
 if(Object.keys(S.ae).length){mo();return}
 S.au=2;S.ae={};mo();return;
 }
 const password=$('#pw').value;
 if(n.length<2)S.ae.n='Please enter your full name.';
-if(!/^(\\+?234|0)[789][01]\\d{8}$/.test(p.replace(/[\\s-]/g,'')))S.ae.p='Enter a Nigerian number, e.g. +234 803 000 0000.';
-if(!/^\\S+@\\S+\\.\\S+$/.test(m))S.ae.m='Enter a valid email address.';
+if(!/^(\+?234|0)[789][01]\d{8}$/.test(p.replace(/[\s-]/g,'')))S.ae.p='Enter a Nigerian number, e.g. +234 803 000 0000.';
+if(!/^\S+@\S+\.\S+$/.test(m))S.ae.m='Enter a valid email address.';
 if(password.length<8)S.ae.pw='Use at least 8 characters.';
 if(Object.keys(S.ae).length){mo();return}
 const auth=window.VELVET_ROSE_FIREBASE&&window.VELVET_ROSE_FIREBASE.auth;
@@ -193,7 +193,7 @@ S.au=3;S.ae={};side();mo();
 async function aSignIn(){
 const m=$('#ae').value.trim(),password=$('#pw').value;
 S.ae={};
-if(!/^\\S+@\\S+\\.\\S+$/.test(m))S.ae.m='Enter a valid email address.';
+if(!/^\S+@\S+\.\S+$/.test(m))S.ae.m='Enter a valid email address.';
 if(!password)S.ae.pw='Enter your password.';
 if(Object.keys(S.ae).length){mo();return}
 const auth=window.VELVET_ROSE_FIREBASE&&window.VELVET_ROSE_FIREBASE.auth;
@@ -207,7 +207,7 @@ S.au=3;S.ae={};side();mo();
 }
 async function resetPassword(){
 const m=$('#ae').value.trim(),auth=window.VELVET_ROSE_FIREBASE&&window.VELVET_ROSE_FIREBASE.auth;
-if(!/^\\S+@\\S+\\.\\S+$/.test(m)){S.ae={m:'Enter your email address first.'};mo();return}
+if(!/^\S+@\S+\.\S+$/.test(m)){S.ae={m:'Enter your email address first.'};mo();return}
 if(!auth){S.ae={auth:'Authentication is not configured yet.'};mo();return}
 try{await auth.sendPasswordResetEmail(m);S.ae={auth:'Password reset email sent. Check your inbox.'};mo()}
 catch(error){S.ae={auth:authMessage(error)};mo()}
