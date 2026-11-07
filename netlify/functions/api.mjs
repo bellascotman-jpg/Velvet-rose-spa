@@ -163,6 +163,7 @@ async function availability(request) {
 }
 
 async function createBooking(request) {
+  if (!Netlify.env.get("PAYSTACK_SECRET_KEY")) return fail("Online payments are not configured yet. Please try again later.", 503);
   if (!sameOrigin(request)) return fail("Invalid request origin.", 403);
   let payload;
   try {
