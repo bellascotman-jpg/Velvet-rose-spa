@@ -1,35 +1,20 @@
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>'₦'+n.toLocaleString('en-NG');const DEP=10000;
-const CATS=['Massage','Facials','Body','Hands & Feet','Packages'];
-const T=[
-{c:0,n:'Swedish Relaxation Massage',m:60,p:45000,t:'Long, flowing strokes to release tension and quieten the mind.'},
-{c:0,n:'Deep Tissue Massage',m:60,p:55000,t:'Firm, focused pressure for knots, tight shoulders and sore backs.'},
-{c:0,n:'Aromatherapy Massage',m:60,p:50000,t:'A gentle massage with calming essential oils chosen for you.'},
-{c:0,n:'Hot Stone Massage',m:75,p:65000,t:'Warm stones melt away stiffness while slow strokes restore ease.'},
-{c:0,n:'Couples Massage',m:90,p:140000,t:'Side-by-side massages for two in our private couples suite.'},
-{c:1,n:'Signature Hydrating Facial',m:60,p:50000,t:'Deep hydration and a gentle massage for soft, fresh skin.'},
-{c:1,n:'Deep Cleansing Facial',m:75,p:60000,t:'Thorough cleansing and extraction to clear and refine skin.'},
-{c:1,n:'Radiance Glow Facial',m:60,p:55000,t:'Brightening care that leaves skin rested and luminous.'},
-{c:2,n:'Salt Glow Body Scrub',m:45,p:40000,t:'A polishing scrub that leaves skin smooth and silky.'},
-{c:2,n:'Scrub and Wrap Ritual',m:75,p:60000,t:'Exfoliation, a nourishing wrap and moisturiser, start to finish.'},
-{c:3,n:'Classic Manicure',m:45,p:15000,t:'Shaping, cuticle care and polish for neat, polished hands.'},
-{c:3,n:'Classic Pedicure',m:60,p:20000,t:'Soak, shape, smooth and polish for fresh, comfortable feet.'},
-{c:3,n:'Spa Pedicure',m:75,p:28000,t:'Our classic pedicure with a scrub, mask and foot massage.'},
-{c:4,n:'The Velvet Ritual',m:150,p:120000,t:'A massage, facial and spa pedicure in one unhurried visit.'},
-{c:4,n:'Couples Escape',m:120,p:180000,t:'A couples massage plus a facial each, in our private suite.'},
-{c:4,n:'Bridal Glow',m:180,p:150000,t:'A body scrub, facial and manicure to prepare for your day.'},
-{c:4,n:'Executive Reset',m:90,p:75000,t:'A deep tissue massage and scalp treatment for busy weeks.'}];
-const ADD=[{n:'Scalp massage',p:8000},{n:'Paraffin hand treatment',p:10000},{n:'Aromatherapy upgrade',p:6000}];
-const HRS=['09:00','10:30','12:00','13:30','15:00','16:30','18:00'];
+const fmt=n=>'₦'+n.toLocaleString('en-NG');const CFG=window.VELVET_ROSE_CONFIG;
+const DEMO_MODE=CFG.demoMode;
+const DEP=CFG.deposit;
+const CATS=CFG.categories;
+const T=CFG.treatments;
+const ADD=CFG.addons;
+const HRS=CFG.timeSlots;
 const t12=t=>{let[h,m]=t.split(':').map(Number);return(h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' AM':' PM')};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const DAYS=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i+1);return d});
 const slotsFor=k=>new Date(k+'T12:00').getDay()===0?HRS.filter(t=>t>='12:00'&&t<='16:30'):HRS;
 const dl=(s,o)=>new Date(s+'T12:00').toLocaleDateString('en-GB',o||{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 const taken=new Set();
-const A=[['Amara Okafor',3,0,'13:30','Confirmed'],['Tunde Adeyemi',16,0,'15:00','Pending'],['Ifeoma Nwosu',7,1,'12:00','Pending'],['Chika Eze',14,1,'16:30','Confirmed'],['Zainab Bello',12,2,'13:30','Pending']].map((r,i)=>({id:'SAMPLE-'+(i+1),name:r[0],svc:r[1],add:[],date:iso(DAYS[r[2]]),time:r[3],status:r[4],sample:1}));
+const A=DEMO_MODE?CFG.sampleBookings.map((r,i)=>({id:'SAMPLE-'+(i+1),name:r[0],svc:r[1],add:[],date:iso(DAYS[r[2]]),time:r[3],status:r[4],sample:1})):[];
 A.forEach(a=>taken.add(a.date+a.time));
 const hash=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
 const busy=(d,t)=>taken.has(d+t)||hash(d+t)%4===0;
@@ -75,9 +60,9 @@ function home(){const mq=T.map(x=>`<span>${x.n}</span><span>✦</span>`).join(''
 <div class="wrap hero"><div><div class="eyebrow"><span class="dot"></span>Day spa &amp; wellness · Lekki Phase 1, Lagos</div><h1>Wellness, <em>scheduled</em> in a minute.</h1><p class="lead">Book your massage, facial or spa day online. See every price upfront and choose a time that fits your week. Our team confirms each request personally.</p><div class="cta"><button class="btn" onclick="start()">Book a Treatment ${AR}</button><button class="btn o" onclick="jump('services')">View Treatments</button></div><div class="tr"><span>✓ Prices shown upfront</span><span>✓ ${fmt(DEP)} deposit, deducted on the day</span><span>✓ Open 7 days</span></div></div>
 <div class="vis"><div class="arch"><img src="${IM.hero}" alt="${PA.hero}"></div>
 <div class="rot" aria-hidden="true"><svg class="t" viewBox="0 0 120 120"><defs><path id="cp" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"/></defs><text font-size="10.5" font-weight="700" letter-spacing="2.6" fill="currentColor"><textPath href="#cp">RELAX · RENEW · RESTORE · REPEAT ·</textPath></text></svg>${ic('arrow',26)}</div>
-<div class="gl g1"><span class="dot"></span><div><b>Next available</b><small>${nextAvail()}</small></div></div><div class="gl g2"><div><b>Open 7 days</b><small>Sun from 12:00 PM</small></div></div></div></div></div>
+<div class="gl g1"><span class="dot"></span><div><b>Next available</b><small>${nextAvail()}</small></div></div><div class="gl g2"><div><b>Open 7 days</b><small>${esc(CFG.sundayOpensLabel)}</small></div></div></div></div></div>
 <div class="mq2" aria-hidden="true"><div>${mq+mq}</div></div>
-<div class="wrap" style="margin-top:34px"><div class="facts"><div>${ic('clock')}<span><b>Open 7 days</b><span class="mut small">Mon–Fri 9–8 · Sat 9–7 · Sun 12–6</span></span></div><div>${ic('pin')}<span><b>Lekki Phase 1</b><span class="mut small">Rosewood Close, Lagos (demo)</span></span></div><div>${ic('cal')}<span><b>Book online</b><span class="mut small">Pick a time in a minute</span></span></div><div>${ic('chat')}<span><b>WhatsApp (demo)</b><span class="mut small">+234 800 000 0000</span></span></div></div></div>
+<div class="wrap" style="margin-top:34px"><div class="facts"><div>${ic('clock')}<span><b>Open 7 days</b><span class="mut small">${esc(CFG.hoursLabel)}</span></span></div><div>${ic('pin')}<span><b>Lekki Phase 1</b><span class="mut small">${esc(CFG.addressShort)}</span></span></div><div>${ic('cal')}<span><b>Book online</b><span class="mut small">Pick a time in a minute</span></span></div><div>${ic('chat')}<span><b>WhatsApp (demo)</b><span class="mut small">${esc(CFG.phone)}</span></span></div></div></div>
 <section class="sec" id="services"><div class="wrap"><div class="eyebrow rv">Treatments</div><h2 class="rv">Choose your <em>ritual</em></h2><p class="mut rv" style="margin-top:14px;max-width:38em">Massage, facials, body care and nails. Every price is shown upfront, and your deposit comes off the total on the day.</p><div class="chips" id="tc" style="margin-top:22px">${chips('hc')}</div><div class="grid g3" id="tg" style="margin-top:6px">${tgrid()}</div></div></section>
 <section class="sec alt" id="packages"><div class="wrap"><div class="eyebrow rv">Spa packages</div><h2 class="rv">Time to <em>unwind properly</em></h2><div class="grid">${[13,14,15,16].map(i=>`<div class="rv">${tcard(i)}</div>`).join('')}</div></div></section>
 <section class="sec" id="member"><div class="wrap"><div class="mem rv"><div><div class="eyebrow">Membership</div><h2>The Monthly <em>Ritual</em></h2><p class="mut" style="margin-top:12px">A standing monthly treatment, kept for you.</p></div><div><big>${fmt(70000)}<small style="font:600 1rem Geist,sans-serif"> /month</small></big><ul style="padding-left:18px"><li>One 60-minute massage or facial each month</li><li>10% off all other treatments</li></ul><button class="btn" onclick="auth()">Join the Monthly Ritual ${AR}</button><p class="small mut" style="margin-top:10px">Demo only. No membership is created.</p></div></div></div></section>
@@ -89,7 +74,7 @@ ${xc('lock','Lockers and showers','Store your things securely and freshen up bef
 ${xc('robe','Robes and towels','Clean robes, towels and slippers are provided for every guest.')}
 ${xc('ent','A calm arrival','A welcoming entrance, with secure parking on site.')}
 <div class="xr rv"><div class="ai">${ic('shield',24)}</div><h3>Your comfort first</h3><p>Share pressure, scent and health preferences, and we’ll plan around you.</p></div></div></div></section>
-<section class="sec alt" id="visit"><div class="wrap"><div class="eyebrow rv">Visit us</div><h2 class="rv">Find us in <em>Lekki Phase 1</em></h2><div class="grid"><div class="card rv"><h3 style="margin-bottom:8px">Opening hours</h3><div class="row"><span>Monday – Friday</span><span>9:00 AM – 8:00 PM</span></div><div class="row"><span>Saturday</span><span>9:00 AM – 7:00 PM</span></div><div class="row"><span>Sunday</span><span>12:00 PM – 6:00 PM</span></div></div><div class="card rv"><h3 style="margin-bottom:8px">Contact</h3><div class="row"><span>Address (demo)</span><span>14 Rosewood Close, Lekki Phase 1, Lagos</span></div><div class="row"><span>Phone / WhatsApp</span><span>+234 800 000 0000</span></div><div class="row"><span>Email</span><span>hello@velvetrose.example</span></div></div></div>
+<section class="sec alt" id="visit"><div class="wrap"><div class="eyebrow rv">Visit us</div><h2 class="rv">Find us in <em>Lekki Phase 1</em></h2><div class="grid"><div class="card rv"><h3 style="margin-bottom:8px">Opening hours</h3><div class="row"><span>Monday – Friday</span><span>${esc(CFG.hours.weekdays)}</span></div><div class="row"><span>Saturday</span><span>${esc(CFG.hours.saturday)}</span></div><div class="row"><span>Sunday</span><span>${esc(CFG.hours.sunday)}</span></div></div><div class="card rv"><h3 style="margin-bottom:8px">Contact</h3><div class="row"><span>Address (demo)</span><span>${esc(CFG.address)}</span></div><div class="row"><span>Phone / WhatsApp</span><span>${esc(CFG.phone)}</span></div><div class="row"><span>Email</span><span>${esc(CFG.email)}</span></div></div></div>
 <div class="grid g3" style="margin-top:16px">${fa('cal','Changes and cancellations','Please give 24 hours’ notice to change or cancel.')}${fa('clock','Arriving late','Your session may be shortened so the next guest isn’t delayed.')}${fa('doc','Health and age','A short health form before your first treatment. Guests are 18 and over, or with a parent.')}</div></div></section>
 <section class="sec" id="faq"><div class="wrap" style="max-width:760px"><div class="eyebrow rv">Questions</div><h2 class="rv">Frequently <em>asked</em></h2><div style="margin-top:16px" class="rv">
 <details><summary>Is my booking confirmed immediately?</summary><p>Your request is reviewed by our team, who then confirm your preferred time.</p></details>
@@ -98,7 +83,7 @@ ${xc('ent','A calm arrival','A welcoming entrance, with secure parking on site.'
 <details><summary>I’m pregnant or have a medical condition. Can I book?</summary><p>Please tell us in your booking note so we can advise on suitable treatments before your visit.</p></details>
 <details><summary>Is tipping expected?</summary><p>Tipping is optional and never expected.</p></details></div></div></section>
 <div style="padding:40px 0 0"><div class="band rv" style="margin:0 20px"><div class="blob" style="width:300px;height:300px;top:-100px;left:-60px"></div><h2 style="max-width:14em;margin:auto">You’ve earned an hour that’s <em>only yours.</em></h2><p class="mut" style="margin:16px auto 28px;max-width:30em">Choose a time that works for you. Your preferred time will be reviewed by our team.</p><div class="cta" style="justify-content:center"><button class="btn" onclick="start()">Book a Treatment ${AR}</button></div></div></div>
-<footer><div class="wrap"><b>Velvet Rose Spa &amp; Wellness — demonstration only.</b><p class="mut" style="margin-top:6px">This is a fictional business created to demonstrate a booking experience. All treatments, prices, names, address and availability are sample data. No real bookings are made and no payments are processed.</p></div></footer>`}
+${DEMO_MODE?`<footer><div class="wrap"><b>Velvet Rose Spa &amp; Wellness — demonstration only.</b><p class="mut" style="margin-top:6px">This is a fictional business created to demonstrate a booking experience. All treatments, prices, names, address and availability are sample data. No real bookings are made and no payments are processed.</p></div></footer>`:''}`}
 function prog(){return `<div class="prog" aria-label="Step ${S.step} of 6">${[1,2,3,4,5,6].map(i=>`<i class="${i<=S.step?'on':''}"></i>`).join('')}</div><p class="small mut">Step ${S.step} of 6</p>`}
 function summ(b){const x=T[b.svc];return `<div class="row"><span>Treatment</span><span>${x.n}</span></div><div class="row"><span>Duration</span><span>${x.m} min</span></div>${b.add.length?`<div class="row"><span>Add-ons</span><span>${b.add.map(i=>ADD[i].n).join(', ')}</span></div>`:''}${b.pref&&b.pref!=='Any available'?`<div class="row"><span>Therapist</span><span>${b.pref}</span></div>`:''}<div class="row"><span>Date</span><span>${dl(b.date)}</span></div><div class="row"><span>Time</span><span>${t12(b.time)}</span></div>${b.name?`<div class="row"><span>Name</span><span>${esc(b.name)}</span></div><div class="row"><span>Phone</span><span>${esc(b.phone)}</span></div>`:''}${b.email?`<div class="row"><span>Email</span><span>${esc(b.email)}</span></div>`:''}${b.occ&&b.occ!=='None'?`<div class="row"><span>Occasion</span><span>${b.occ}</span></div>`:''}${b.note?`<div class="row"><span>Note</span><span>${esc(b.note)}</span></div>`:''}`}
 function book(){let h='<div class="sc">'+prog();const x=T[S.svc];
@@ -116,7 +101,7 @@ if(S.step===6){pay();return}S.step++;render();scrollTo(0,0)}
 function pay(){$('#app').innerHTML=`<div class="sc" style="text-align:center"><div class="spin"></div><h3>Processing demo payment…</h3><p class="mut small" style="margin-top:6px">Simulated checkout. No real payment is made.</p></div>`;scrollTo(0,0);
 setTimeout(()=>{if(busy(S.date,S.time)){toast('Sorry, that time was just taken. Please choose another.');S.step=3;S.time=null;render();return}
 const ref='VRS-'+Math.random().toString(36).slice(2,7).toUpperCase();S.bk={id:ref,name:S.name,phone:S.phone,email:S.email,pref:S.pref,occ:S.occ,note:S.note,svc:S.svc,add:[...S.add],date:S.date,time:S.time,status:'Pending',pay:S.pay};A.unshift(S.bk);taken.add(S.date+S.time);S.view='confirm';render();scrollTo(0,0)},1500)}
-const wa=()=>'https://wa.me/2348000000000?text='+encodeURIComponent('Hello, this is a demo enquiry for booking '+S.bk.id);
+const wa=()=>'https://wa.me/'+CFG.whatsapp+'?text='+encodeURIComponent('Hello, this is a demo enquiry for booking '+S.bk.id);
 function confirmV(){const b=S.bk;return `<div class="sc" style="text-align:center"><svg class="chk" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38"/><path d="M26 43l11 11 21-24"/></svg><div class="eyebrow">Booking reference</div><h1 style="font-size:2.8rem">${b.id}</h1><p style="margin:12px 0 18px">Appointment request received. Our team will confirm your preferred time.</p><div class="card" style="text-align:left">${summ(b)}<div class="row"><span>Deposit</span><span>${fmt(DEP)} · ${b.pay==='card'?'Card':'Transfer'} (demo)</span></div><div class="row"><span>Status</span><span class="pill ${b.status}">${b.status==='Pending'?'Awaiting confirmation':b.status}</span></div></div><div class="note" style="text-align:left">This is a demo. No real booking has been made and no payment was taken.</div><div class="cta noprint" style="margin-top:20px;justify-content:center"><button class="btn" onclick="print()">Print Booking Summary</button><a class="btn o" href="${wa()}" target="_blank" rel="noopener">WhatsApp Us (demo)</a><button class="btn o" onclick="go('manage')">View Booking Details</button></div><p style="margin-top:18px"><button class="btn s o noprint" onclick="start()">Make Another Booking</button></p></div>`}
 function manage(){const b=S.bk;if(!b)return `<div class="sc"><h2>My booking</h2><div class="empty card" style="margin-top:16px">No booking in this demo session yet.<br><br><button class="btn" onclick="start()">Book a Treatment</button></div></div>`;
 return `<div class="sc"><h2>My booking</h2><p class="mut small" style="margin:6px 0 14px">Reference ${b.id}</p><div class="card">${summ(b)}<div class="row"><span>Status</span><span class="pill ${b.status}">${b.status}</span></div></div>${b.status==='Cancelled'?'<div class="note">This booking has been cancelled and the time released.</div>':`<div class="cta" style="margin-top:16px"><button class="btn" onclick="resched()">Request a New Time</button><button class="btn o" onclick="cancel('${b.id}')">Cancel Booking</button></div><div class="note">Changes are requests. Our team will confirm.</div>`}</div>`}
@@ -150,3 +135,4 @@ function render(keep){const v=S.view;const sp=keep===true&&document.activeElemen
 addEventListener('scroll',()=>{const h=document.documentElement;$('#pg').style.transform='scaleX('+(scrollY/Math.max(1,h.scrollHeight-innerHeight))+')'},{passive:true});
 addEventListener('pointermove',e=>{const t=e.target.closest&&e.target.closest('.svc,.pc,.bk');if(t){const r=t.getBoundingClientRect();t.style.setProperty('--x',e.clientX-r.left+'px');t.style.setProperty('--y',e.clientY-r.top+'px')}});
 render();
+if(!DEMO_MODE)document.getElementById('demo-banner')?.remove();
