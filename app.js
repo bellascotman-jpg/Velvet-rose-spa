@@ -24,6 +24,7 @@ function initFirebase(){
   return {auth,db};
 }
 window.VELVET_ROSE_FIREBASE=initFirebase();
+const AUTH_DEMO=DEMO_MODE&&!window.VELVET_ROSE_FIREBASE;
 const t12=t=>{let[h,m]=t.split(':').map(Number);return(h%12||12)+':'+String(m).padStart(2,'0')+(h<12?' AM':' PM')};
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const DAYS=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i+1);return d});
@@ -36,7 +37,7 @@ const hash=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
 const busy=(d,t)=>taken.has(d+t)||hash(d+t)%4===0;
 const nextAvail=()=>{for(const d of DAYS){const k=iso(d);for(const t of slotsFor(k))if(!busy(k,t))return dl(k,{weekday:'short',day:'numeric',month:'short'})+', '+t12(t)}return 'Soon'};
 const est=b=>T[b.svc].p+(b.add||[]).reduce((n,i)=>n+ADD[i].p,0);
-let S={user:null,au:0,ae:{},tmp:null,view:'home',step:1,cat:0,hc:0,svc:null,add:[],pref:'Any available',occ:'None',date:null,time:null,name:'',phone:'',email:'',note:'',health:false,pay:'card',errs:{},bk:null,f:'All',q:'',gift:50000};
+let S={user:null,au:0,authMode:'signup',ae:{},tmp:null,view:'home',step:1,cat:0,hc:0,svc:null,add:[],pref:'Any available',occ:'None',date:null,time:null,name:'',phone:'',email:'',note:'',health:false,pay:'card',errs:{},bk:null,f:'All',q:'',gift:50000};
 function toast(m){const t=$('#toast');t.innerHTML='<div class="toast" role="status">'+m+'</div>';setTimeout(()=>t.innerHTML='',2800)}
 const IC={arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',home:'<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',pin:'<path d="M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>',help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17v.5"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',shield:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',alert:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',doc:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/>',card:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/>',heart:'<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/>',gift:'<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 13h18M12 8c-3 0-5-1-5-3s3-2 5 3c2-5 5-5 5-3s-2 3-5 3"/>',star:'<path d="M12 3l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.8 6.4 20l1.3-6.2L3 9.5l6.3-.7z"/>',leaf:'<path d="M5 19C5 9 11 4 20 4c0 9-5 15-15 15zM5 19l8-8"/>',car:'<path d="M5 16V11l2-5h10l2 5v5zM3 16h18M7 19v-3M17 19v-3"/>',cup:'<path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM17 10h2a2 2 0 0 1 0 4h-2"/>',key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>',plus:'<path d="M12 5v14M5 12h14"/>',sparkle:'<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>'};
 const ic=(n,s)=>`<svg width="${s||20}" height="${s||20}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
@@ -61,7 +62,7 @@ $('#sb').innerHTML=`<div class="sb-h"><span class="lg"><i>${ic('sparkle',20)}</i
 <div class="sg">Explore</div>${it('Overview','home',"go('home')",v==='home')}${it('Treatments','grid',"jump('services')")}${it('Spa packages','star',"jump('packages')")}${it('Memberships','heart',"jump('member')")}${it('Gift cards','gift',"jump('gifts')")}${it('The experience','leaf',"jump('experience')")}${it('Visit us','pin',"jump('visit')")}${it('FAQ','help',"jump('faq')")}
 <div class="sg">Your account</div>${it('My booking','user',"go('manage')",v==='manage'||v==='confirm')}
 <div class="sg">For the spa owner</div>${it('Business Preview','chart',"go('prev')",v==='prev')}
-<div class="me">${S.user?`<span class="av">${esc(S.user.name[0].toUpperCase())}</span><div><b>${esc(S.user.name.split(' ')[0])}</b><small>Guest profile</small></div>`:`<button class="btn s w" onclick="auth();menu(0)">Create Profile / Sign In</button>`}</div>`}
+<div class="me">${S.user?`<span class="av">${esc((S.user.name||'G')[0].toUpperCase())}</span><div><b>${esc((S.user.name||'Guest').split(' ')[0])}</b><small>Guest profile</small><button class="btn s o" style="margin-top:6px" onclick="signOut()">Sign Out</button></div>`:`<button class="btn s w" onclick="auth();menu(0)">Create Profile / Sign In</button>`}</div>`}
 const acct=side;
 function go(v,o){Object.assign(S,{view:v},o||{});render();scrollTo(0,0)}
 function jump(id){if(S.view!=='home'){S.view='home';render()}setTimeout(()=>document.getElementById(id)?.scrollIntoView(),40)}
@@ -134,16 +135,88 @@ You can explore our treatments and request your preferred appointment time using
 
 Our team will review your request and confirm availability.</div><button class="btn" onclick="start()">Open Booking Experience</button></div>
 <div><h3>Front-desk value</h3><p class="mut" style="margin:10px 0">Your guests can take the first step toward booking without waiting for your front desk to respond.</p><div class="ba"><div class="card"><b>Before</b><div class="flow"><div>Guest enquires</div><div>Staff responds</div><div>Guest selects a time</div><div>Staff confirms</div></div></div><div class="card"><b>After</b><div class="flow"><div>Guest explores treatments</div><div>Selects preferred time</div><div>Submits booking</div><div>Team reviews and confirms</div></div></div></div></div></div></div>`}
-function auth(){S.au=1;S.ae={};mo()}
+function auth(){S.au=1;S.authMode='signup';S.ae={};mo()}
 function gift(){S.au=4;S.ae={};mo()}
 function mo(){let h='';const e=S.ae||{};
-if(S.au===1)h=`<h3>Create your guest profile</h3><p class="mut small" style="margin-top:8px">Book faster next time. Demo only: nothing is saved or sent.</p><label for="an">Full name</label><input id="an" autocomplete="name" class="${e.n?'bad':''}"><div class="err">${e.n||''}</div><label for="ap">Phone number</label><input id="ap" type="tel" placeholder="+234 803 000 0000" class="${e.p?'bad':''}"><div class="err">${e.p||''}</div><label for="ae">Email (optional)</label><input id="ae" type="email"><button class="btn w" style="margin-top:20px" onclick="a1()">Send Verification Code</button><button class="btn o w" style="margin-top:10px" onclick="S.au=0;mo()">Continue as Guest</button>`;
+if(S.au===1){
+if(AUTH_DEMO)h='<h3>Create your guest profile</h3><p class="mut small" style="margin-top:8px">Book faster next time. Demo only: nothing is saved or sent.</p><label for="an">Full name</label><input id="an" autocomplete="name" class="'+(e.n?'bad':'')+'"><div class="err">'+(e.n||'')+'</div><label for="ap">Phone number</label><input id="ap" type="tel" placeholder="+234 803 000 0000" class="'+(e.p?'bad':'')+'"><div class="err">'+(e.p||'')+'</div><label for="ae">Email (optional)</label><input id="ae" type="email"><button class="btn w" style="margin-top:20px" onclick="a1()">Send Verification Code</button><button class="btn o w" style="margin-top:10px" onclick="S.au=0;mo()">Continue as Guest</button>';
+else if(S.authMode==='signup')h='<h3>Create your guest profile</h3><p class="mut small" style="margin-top:8px">Book faster next time.</p><label for="an">Full name</label><input id="an" autocomplete="name" class="'+(e.n?'bad':'')+'"><div class="err">'+(e.n||'')+'</div><label for="ap">Phone number</label><input id="ap" type="tel" autocomplete="tel" placeholder="+234 803 000 0000" class="'+(e.p?'bad':'')+'"><div class="err">'+(e.p||'')+'</div><label for="ae">Email address</label><input id="ae" type="email" autocomplete="email" class="'+(e.m?'bad':'')+'"><div class="err">'+(e.m||'')+'</div><label for="pw">Password</label><input id="pw" type="password" autocomplete="new-password" minlength="8" class="'+(e.pw?'bad':'')+'"><div class="err">'+(e.pw||'')+'</div><div class="err">'+(e.auth||'')+'</div><button class="btn w" style="margin-top:20px" onclick="a1()">Create Profile</button><button class="btn o w" style="margin-top:10px" onclick="showSignIn()">Sign In</button><button class="btn o w" style="margin-top:10px" onclick="S.au=0;mo()">Continue as Guest</button>';
+else h='<h3>Sign in to your guest profile</h3><label for="ae">Email address</label><input id="ae" type="email" autocomplete="email" class="'+(e.m?'bad':'')+'"><div class="err">'+(e.m||'')+'</div><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" class="'+(e.pw?'bad':'')+'"><div class="err">'+(e.pw||'')+'</div><div class="err">'+(e.auth||'')+'</div><button class="btn w" style="margin-top:20px" onclick="aSignIn()">Sign In</button><button class="btn o w" style="margin-top:10px" onclick="resetPassword()">Reset Password</button><button class="btn o w" style="margin-top:10px" onclick="showSignUp()">Create Profile</button>';
+}
 if(S.au===2)h=`<h3>Verify your number</h3><p class="mut small" style="margin-top:8px">We sent a code to ${esc(S.tmp.phone)}. In this demo, enter <b>1234</b>.</p><label for="ac">4-digit code</label><input id="ac" inputmode="numeric" maxlength="4" class="${e.c?'bad':''}"><div class="err">${e.c||''}</div><button class="btn w" style="margin-top:20px" onclick="a2()">Verify and Continue</button>`;
 if(S.au===3)h=`<div style="text-align:center"><svg class="chk" viewBox="0 0 84 84"><circle cx="42" cy="42" r="38"/><path d="M26 43l11 11 21-24"/></svg><h3>Welcome, ${esc(S.user.name.split(' ')[0])}</h3><p class="mut" style="margin:8px 0 20px">Your profile is ready. Your details will be filled in for you.</p><button class="btn w" onclick="S.au=0;mo();start()">Book a Treatment</button></div>`;
 if(S.au===4)h=`<h3>Send a gift card</h3><p class="mut small" style="margin-top:8px">Demo only: no card is issued and no payment is taken.</p><label for="ga">Amount (₦)</label><input id="ga" type="number" min="5000" step="1000" value="${S.gift}" class="${e.a?'bad':''}"><div class="err">${e.a||''}</div><label for="gn">Recipient’s name</label><input id="gn" class="${e.n?'bad':''}"><div class="err">${e.n||''}</div><label for="gm">Message (optional)</label><textarea id="gm" rows="3" placeholder="Enjoy some well-earned calm"></textarea><button class="btn w" style="margin-top:20px" onclick="g1()">Continue to Demo Payment</button>`;
 if(S.au===5)h=`<div style="text-align:center"><svg class="chk" viewBox="0 0 84 84"><circle cx="42" cy="42" r="38"/><path d="M26 43l11 11 21-24"/></svg><h3>Gift card ready</h3><p class="mut" style="margin:8px 0">${fmt(S.tmp.a)} for ${esc(S.tmp.n)}</p><p class="eyebrow" style="margin:6px 0">Demo code ${S.tmp.code}</p><p class="small mut" style="margin-bottom:20px">No real gift card has been issued.</p><button class="btn w" onclick="S.au=0;mo()">Done</button></div>`;
 $('#mo').innerHTML=S.au?`<div class="mo" onclick="if(event.target===this){S.au=0;mo()}"><div class="md" role="dialog" aria-modal="true">${h}</div></div>`:''}
-function a1(){const n=$('#an').value.trim(),p=$('#ap').value.trim(),m=$('#ae').value.trim();S.ae={};if(n.length<2)S.ae.n='Please enter your full name.';if(!/^(\+?234|0)[789][01]\d{8}$/.test(p.replace(/[\s-]/g,'')))S.ae.p='Enter a Nigerian number, e.g. +234 803 000 0000.';S.tmp={name:n,phone:p,email:m};if(Object.keys(S.ae).length){mo();return}S.au=2;S.ae={};mo()}
+function authMessage(error){
+const messages={
+'auth/email-already-in-use':'An account already exists for this email. Sign in instead.',
+'auth/invalid-email':'Enter a valid email address.',
+'auth/weak-password':'Use a password with at least 8 characters.',
+'auth/invalid-credential':'Email or password is incorrect.',
+'auth/user-not-found':'No account was found for this email.',
+'auth/wrong-password':'Email or password is incorrect.',
+'auth/too-many-requests':'Too many attempts. Please wait and try again.',
+'auth/network-request-failed':'Network error. Check your connection and try again.'
+};
+return messages[error&&error.code]||'We could not complete that request. Please try again.';
+}
+function showSignIn(){S.authMode='signin';S.ae={};mo()}
+function showSignUp(){S.authMode='signup';S.ae={};mo()}
+async function a1(){
+const n=$('#an').value.trim(),p=$('#ap').value.trim(),m=$('#ae').value.trim();
+S.ae={};
+if(AUTH_DEMO){
+if(n.length<2)S.ae.n='Please enter your full name.';
+if(!/^(\\+?234|0)[789][01]\\d{8}$/.test(p.replace(/[\\s-]/g,'')))S.ae.p='Enter a Nigerian number, e.g. +234 803 000 0000.';
+S.tmp={name:n,phone:p,email:m};
+if(Object.keys(S.ae).length){mo();return}
+S.au=2;S.ae={};mo();return;
+}
+const password=$('#pw').value;
+if(n.length<2)S.ae.n='Please enter your full name.';
+if(!/^(\\+?234|0)[789][01]\\d{8}$/.test(p.replace(/[\\s-]/g,'')))S.ae.p='Enter a Nigerian number, e.g. +234 803 000 0000.';
+if(!/^\\S+@\\S+\\.\\S+$/.test(m))S.ae.m='Enter a valid email address.';
+if(password.length<8)S.ae.pw='Use at least 8 characters.';
+if(Object.keys(S.ae).length){mo();return}
+const auth=window.VELVET_ROSE_FIREBASE&&window.VELVET_ROSE_FIREBASE.auth;
+if(!auth){S.ae.auth='Authentication is not configured yet.';mo();return}
+try{
+const credential=await auth.createUserWithEmailAndPassword(m,password);
+await credential.user.updateProfile({displayName:n});
+await credential.user.sendEmailVerification();
+S.user={name:n,phone:p,email:m};
+Object.assign(S,{name:n,phone:p,email:m});
+S.au=3;S.ae={};side();mo();
+}catch(error){S.ae={auth:authMessage(error)};mo()}
+}
+async function aSignIn(){
+const m=$('#ae').value.trim(),password=$('#pw').value;
+S.ae={};
+if(!/^\\S+@\\S+\\.\\S+$/.test(m))S.ae.m='Enter a valid email address.';
+if(!password)S.ae.pw='Enter your password.';
+if(Object.keys(S.ae).length){mo();return}
+const auth=window.VELVET_ROSE_FIREBASE&&window.VELVET_ROSE_FIREBASE.auth;
+if(!auth){S.ae.auth='Authentication is not configured yet.';mo();return}
+try{
+const credential=await auth.signInWithEmailAndPassword(m,password),user=credential.user;
+S.user={name:user.displayName||m.split('@')[0],phone:user.phoneNumber||'',email:user.email||m};
+Object.assign(S,{name:S.user.name,phone:S.user.phone,email:S.user.email});
+S.au=3;S.ae={};side();mo();
+}catch(error){S.ae={auth:authMessage(error)};mo()}
+}
+async function resetPassword(){
+const m=$('#ae').value.trim(),auth=window.VELVET_ROSE_FIREBASE&&window.VELVET_ROSE_FIREBASE.auth;
+if(!/^\\S+@\\S+\\.\\S+$/.test(m)){S.ae={m:'Enter your email address first.'};mo();return}
+if(!auth){S.ae={auth:'Authentication is not configured yet.'};mo();return}
+try{await auth.sendPasswordResetEmail(m);S.ae={auth:'Password reset email sent. Check your inbox.'};mo()}
+catch(error){S.ae={auth:authMessage(error)};mo()}
+}
+async function signOut(){
+const auth=window.VELVET_ROSE_FIREBASE&&window.VELVET_ROSE_FIREBASE.auth;
+try{if(auth&&!AUTH_DEMO)await auth.signOut()}catch(error){toast(authMessage(error));return}
+S.user=null;S.name='';S.phone='';S.email='';S.au=0;S.ae={};side();mo();toast('Signed out.');
+}
 function a2(){if($('#ac').value.trim()!=='1234'){S.ae={c:'That code isn’t right. Use 1234 in this demo.'};mo();return}S.ae={};S.user=S.tmp;Object.assign(S,{name:S.user.name,phone:S.user.phone,email:S.user.email});S.au=3;side();mo()}
 function g1(){const a=+$('#ga').value,n=$('#gn').value.trim();S.ae={};if(!(a>=5000))S.ae.a='Minimum amount is ₦5,000.';if(n.length<2)S.ae.n='Please enter a name.';if(Object.keys(S.ae).length){mo();return}S.tmp={a,n,code:'VR-'+Math.random().toString(36).slice(2,8).toUpperCase()};S.au=5;mo()}
 var io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
