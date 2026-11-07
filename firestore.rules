@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Customer data is private to the authenticated owner.
+    // Writes are server-only; Netlify Functions will use Firebase Admin.
+    match /customers/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    // Customers can read only their own bookings.
+    match /bookings/{bookingId} {
+      allow get, list: if request.auth != null
+        && resource.data.customerUid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // Availability, payment state, roles and operational records are server-only.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
