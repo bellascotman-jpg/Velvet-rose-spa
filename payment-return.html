@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#5E0A1B">
+<title>Payment status · Velvet Rose Spa</title>
+<style>
+:root{color-scheme:light;--ink:#241317;--muted:#806c70;--line:#eadfe1;--red:#D0152F;--deep:#5E0A1B;--bg:#FBF8F8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;padding:24px}
+main{width:min(100%,560px);background:#fff;border:1px solid var(--line);border-radius:22px;padding:clamp(24px,6vw,48px);box-shadow:0 18px 60px #32121b12;text-align:center}
+.brand{font:500 30px Georgia,serif;color:var(--deep)}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+h1{font:500 clamp(30px,7vw,42px)/1.1 Georgia,serif;margin:0 0 12px}.muted{color:var(--muted)}.ref{background:var(--bg);border:1px solid var(--line);padding:12px;border-radius:12px;margin:22px 0;word-break:break-all}
+button,a{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;padding:13px 22px;background:var(--deep);color:white;text-decoration:none;font:600 14px system-ui;cursor:pointer;margin:4px}
+button.secondary{background:white;color:var(--deep);border:1px solid var(--line)}.status{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;background:#f7edf0;color:var(--deep);font-size:25px}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">Velvet Rose</div>
+  <div class="eyebrow">Spa & Wellness · Lekki</div>
+  <div class="status" id="symbol">…</div>
+  <h1 id="title">Verifying your payment</h1>
+  <p class="muted" id="message">Please wait while we securely confirm your Paystack transaction.</p>
+  <div class="ref" id="reference" hidden></div>
+  <div id="actions"></div>
+</main>
+<script>
+const params=new URLSearchParams(location.search);
+const reference=params.get("reference")||params.get("trxref");
+const title=document.querySelector("#title"),message=document.querySelector("#message"),symbol=document.querySelector("#symbol"),refBox=document.querySelector("#reference"),actions=document.querySelector("#actions");
+if(reference){refBox.hidden=false;refBox.textContent="Payment reference: "+reference;}
+async function verify(){
+  if(!reference){title.textContent="No payment reference found";message.textContent="Return to Velvet Rose and try booking again.";symbol.textContent="!";return;}
+  try{
+    const response=await fetch("/api/payments/verify?reference="+encodeURIComponent(reference),{cache:"no-store"});
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||"We could not verify this payment.");
+    if(data.status==="confirmed"){
+      symbol.textContent="✓";title.textContent="Your appointment is confirmed";
+      message.textContent="Your Paystack payment was verified and your appointment slot has been secured. Keep your booking reference for future enquiries.";
+      refBox.textContent="Booking reference: "+data.bookingReference;
+    }else if(data.status==="payment_received_review"){
+      symbol.textContent="!";title.textContent="Payment received — confirmation pending";
+      message.textContent="We received your payment, but the selected slot needs a manual availability check. Please contact the spa with your payment reference.";
+    }else{
+      symbol.textContent="!";title.textContent="Payment not confirmed";
+      message.textContent="No successful payment has been verified. If you completed payment, refresh this page in a moment.";
+      actions.innerHTML='<button class="secondary" onclick="verify()">Check payment again</button>';
+    }
+  }catch(error){
+    symbol.textContent="!";title.textContent="We could not confirm the payment yet";
+    message.textContent=error.message;
+    actions.innerHTML='<button class="secondary" onclick="verify()">Try verification again</button>';
+  }
+}
+verify();
+</script>
+</body>
+</html>
