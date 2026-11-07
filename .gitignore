@@ -1,0 +1,14 @@
+node_modules/
+.netlify/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.env
+.env.*
+!.env.example
+service-account*.json
+*-service-account*.json
+*.pem
+*.key
+emulator-data/
